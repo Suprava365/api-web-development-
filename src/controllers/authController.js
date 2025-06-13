@@ -30,4 +30,36 @@ exports.registerUser = async (req, res) => {
 };
 
 
-//paste
+exports.loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      'your_jwt_secret_key', // replace this with a secure key and use dotenv in production
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({ message: 'Login successful', token });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
