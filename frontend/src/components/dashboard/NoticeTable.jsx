@@ -34,7 +34,7 @@ export default function NoticeTable() {
   const fetchNotices = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/notices");
-      setNotices(res.data);
+      setNotices(res.data.data || []); 
     } catch {
       toast.error("Failed to load notices");
     } finally {

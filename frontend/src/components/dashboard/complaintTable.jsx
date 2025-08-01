@@ -21,15 +21,16 @@ export default function ComplaintTable() {
   }, []);
 
   const fetchComplaints = async () => {
-    try {
-      const res = await axios.get("http://localhost:3000/api/complaints");
-      setComplaints(res.data);
-    } catch (err) {
-      toast.error("Failed to load complaints");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await axios.get("http://localhost:3000/api/complaints");
+    setComplaints(res.data.data || []); // ✅ safely set to array
+  } catch (err) {
+    toast.error("Failed to load complaints");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
