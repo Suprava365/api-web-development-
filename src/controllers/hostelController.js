@@ -11,15 +11,6 @@ exports.createHostel = async (req, res) => {
   }
 };
 
-// READ ALL
-exports.getAllHostels = async (req, res) => {
-  try {
-    const hostels = await Hostel.find().sort({ createdAt: -1 });
-    res.status(200).json(hostels);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching hostels', error: err.message });
-  }
-};
 
 // UPDATE
 exports.updateHostel = async (req, res) => {
