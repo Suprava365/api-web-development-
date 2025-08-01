@@ -61,22 +61,40 @@ export default function UserTable() {
     }
   };
 
-  const handleEdit = async () => {
-    try {
-      const res = await axios.put(
-        `http://localhost:3000/api/users/${formData._id}`,
-        formData
-      );
-      toast.success("User updated");
-      setUsers((prev) =>
-        prev.map((user) => (user._id === res.data._id ? res.data : user))
-      );
-      setShowEditModal(false);
-      setFormData(initialForm);
-    } catch (error) {
-      toast.error("Failed to update user");
-    }
-  };
+  // const handleEdit = async () => {
+  //   try {
+  //     const res = await axios.put(
+  //       `http://localhost:3000/api/users/${formData._id}`,
+  //       formData
+  //     );
+  //     toast.success("User updated");
+  //     setUsers((prev) =>
+  //       prev.map((user) => (user._id === res.data._id ? res.data : user))
+  //     );
+  //     setShowEditModal(false);
+  //     setFormData(initialForm);
+  //   } catch (error) {
+  //     toast.error("Failed to update user");
+  //   }
+  // };
+const handleEdit = async () => {
+  try {
+    const { _id, createdAt, ...cleanedData } = formData;
+    const res = await axios.put(
+      `http://localhost:3000/api/users/${_id}`,
+      cleanedData
+    );
+    toast.success("User updated");
+    setUsers((prev) =>
+      prev.map((user) => (user._id === res.data._id ? res.data : user))
+    );
+    setShowEditModal(false);
+    setFormData(initialForm);
+  } catch (error) {
+    toast.error("Failed to update user");
+    console.error(error); // ✅ for debugging
+  }
+};
 
   const handleDelete = async () => {
     try {
