@@ -69,22 +69,6 @@ const handleChange = (e) => {
 };
 
 
-  const openAddModal = () => {
-    setFormData(initialForm);
-    setShowAddModal(true);
-  };
-
-  const openEditModal = (hostel) => {
-    setCurrentHostel(hostel);
-    setFormData({ ...hostel, numberOfRooms: hostel.numberOfRooms || "" });
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (hostel) => {
-    setCurrentHostel(hostel);
-    setShowDeleteModal(true);
-  };
-
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     try {
