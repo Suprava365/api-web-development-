@@ -20,8 +20,7 @@ export default function UserTable() {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const initialForm = {
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     password: "",
     role: "User",
@@ -29,7 +28,6 @@ export default function UserTable() {
   };
   const [formData, setFormData] = useState(initialForm);
 
-  // ✅ Fetch Users on Mount
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -61,40 +59,24 @@ export default function UserTable() {
     }
   };
 
-  // const handleEdit = async () => {
-  //   try {
-  //     const res = await axios.put(
-  //       `http://localhost:3000/api/users/${formData._id}`,
-  //       formData
-  //     );
-  //     toast.success("User updated");
-  //     setUsers((prev) =>
-  //       prev.map((user) => (user._id === res.data._id ? res.data : user))
-  //     );
-  //     setShowEditModal(false);
-  //     setFormData(initialForm);
-  //   } catch (error) {
-  //     toast.error("Failed to update user");
-  //   }
-  // };
-const handleEdit = async () => {
-  try {
-    const { _id, createdAt, ...cleanedData } = formData;
-    const res = await axios.put(
-      `http://localhost:3000/api/users/${_id}`,
-      cleanedData
-    );
-    toast.success("User updated");
-    setUsers((prev) =>
-      prev.map((user) => (user._id === res.data._id ? res.data : user))
-    );
-    setShowEditModal(false);
-    setFormData(initialForm);
-  } catch (error) {
-    toast.error("Failed to update user");
-    console.error(error); // ✅ for debugging
-  }
-};
+  const handleEdit = async () => {
+    try {
+      const { _id, createdAt, ...cleanedData } = formData;
+      const res = await axios.put(
+        `http://localhost:3000/api/users/${_id}`,
+        cleanedData
+      );
+      toast.success("User updated");
+      setUsers((prev) =>
+        prev.map((user) => (user._id === res.data._id ? res.data : user))
+      );
+      setShowEditModal(false);
+      setFormData(initialForm);
+    } catch (error) {
+      toast.error("Failed to update user");
+      console.error(error);
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -153,7 +135,7 @@ const handleEdit = async () => {
             {users.map((user) => (
               <tr key={user._id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-2 font-medium text-gray-900">
-                  {user.firstName} {user.lastName}
+                  {user.name}
                 </td>
                 <td className="px-4 py-2 text-gray-500">{user.email}</td>
                 <td className="px-4 py-2">
@@ -202,7 +184,6 @@ const handleEdit = async () => {
           </tbody>
         </table>
 
-        {/* Add / Edit Modal */}
         {(showAddModal || showEditModal) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
@@ -235,17 +216,9 @@ const handleEdit = async () => {
                 className="grid grid-cols-2 md:grid-cols-3 gap-4"
               >
                 <input
-                  name="firstName"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                  className="px-3 py-2 border rounded-md"
-                />
-                <input
-                  name="lastName"
-                  placeholder="Last Name"
-                  value={formData.lastName}
+                  name="name"
+                  placeholder="Full Name"
+                  value={formData.name}
                   onChange={handleChange}
                   required
                   className="px-3 py-2 border rounded-md"
@@ -300,7 +273,6 @@ const handleEdit = async () => {
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
@@ -310,11 +282,8 @@ const handleEdit = async () => {
             <div className="relative bg-white p-6 rounded-lg shadow-lg z-10 max-w-md w-full">
               <h3 className="text-lg font-semibold mb-4">Delete User</h3>
               <p className="text-gray-700 mb-4">
-                Are you sure you want to delete{" "}
-                <span className="font-bold">
-                  {selectedUser?.firstName} {selectedUser?.lastName}
-                </span>
-                ?
+                Are you sure you want to delete {" "}
+                <span className="font-bold">{selectedUser?.name}</span>?
               </p>
               <div className="flex justify-end space-x-2">
                 <button
