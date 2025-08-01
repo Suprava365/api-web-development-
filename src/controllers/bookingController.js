@@ -30,6 +30,24 @@ exports.markAsPaid = async (req, res) => {
   }
 };
 
+exports.getBookings = async (req, res) => {
+  try {
+    const bookings = await bookingService.getAllBookings();
+    res.json({ success: true, data: bookings });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getBookingById = async (req, res) => {
+  try {
+    const booking = await bookingService.getBookingById(req.params.bookingId);
+    res.json({ success: true, data: booking });
+  } catch (err) {
+    res.status(404).json({ success: false, message: 'Booking not found' });
+  }
+};
+
 exports.updateBooking = async (req, res) => {
   try {
     const booking = await bookingService.updateBooking(req.params.bookingId, req.body);
