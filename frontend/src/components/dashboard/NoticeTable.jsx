@@ -130,7 +130,8 @@ export default function NoticeTable() {
           </thead>
           <tbody>
             {notices.map((notice) => (
-              <tr key={notice._id} className="border-t hover:bg-gray-50">
+                <tr key={notice._id} className="border-t hover:bg-gray-50">
+
                 <td className="px-4 py-2 font-medium text-gray-900">{notice.title}</td>
                 <td className="px-4 py-2">{notice.message}</td>
                 <td className="px-4 py-2 text-sm text-gray-500">{notice.postedBy}</td>
