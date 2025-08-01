@@ -85,17 +85,7 @@ const handleChange = (e) => {
   };
 
 
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post("http://localhost:3000/api/hostels", formData);
-      setHostels((prev) => [...prev, res.data]);
-      toast.success("Hostel added successfully");
-      setShowAddModal(false);
-    } catch (error) {
-      toast.error("Failed to add hostel");
-    }
-  };
+ 
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
