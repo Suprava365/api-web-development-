@@ -9,6 +9,16 @@ exports.createBooking = async (req, res) => {
   }
 };
 
+exports.updateStatus = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { status } = req.body;
+    const updated = await bookingService.updateBookingStatus(bookingId, status);
+    res.json({ success: true, message: 'Status updated', data: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
 
 exports.markAsPaid = async (req, res) => {
   try {
