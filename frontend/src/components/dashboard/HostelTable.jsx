@@ -53,20 +53,6 @@ export default function HostelTable() {
     fetchHostels();
   }, []);
 
-const handleChange = (e) => {
-  const { name, type, checked, value } = e.target;
-
-  if (type === "checkbox") {
-    setFormData((prev) => ({ ...prev, [name]: checked }));
-  } else if (type === "number") {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value === "" ? "" : Number(value),
-    }));
-  } else {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }
-};
 
 
   const openAddModal = () => {

@@ -81,7 +81,7 @@ export default function MealTable() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:3000/api/meals/plan/${currentMeal._id}`, formData);
+      await axios.post(`http://localhost:3000/api/meals/plan/${currentMeal._id}`, formData);
       toast.success("Meal updated successfully");
       setShowEditModal(false);
       fetchMeals();

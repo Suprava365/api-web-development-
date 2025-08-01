@@ -1,9 +1,12 @@
 "use client"
-
-import { useState } from "react"
-import { Save, Bell, Shield, User, Palette } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Save, Bell, Shield, User, Palette, Loader2 } from "lucide-react"
 
 export default function Settings() {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false)
+
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -11,10 +14,10 @@ export default function Settings() {
   })
 
   const [profile, setProfile] = useState({
-    companyName: "HomeServe Pro",
-    email: "admin@homeserve.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Business St, City, State 12345",
+    companyName: "",
+    email: "",
+    phone: "",
+    address: "",
   })
 
   const [preferences, setPreferences] = useState({
@@ -24,13 +27,143 @@ export default function Settings() {
     currency: "USD",
   })
 
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // Get user ID from session storage
+        const userId = sessionStorage.getItem("hs_user_id")
+
+        if (!userId) {
+          throw new Error("User ID not found in session storage")
+        }
+
+        const response = await fetch(`http://localhost:3000/api/users/${userId}`)
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data")
+        }
+
+        const result = await response.json()
+
+        if (result.success && result.data) {
+          const userData = result.data
+
+          // Map API response to component state
+          setProfile({
+            companyName: userData.fullname || "",
+            email: userData.email || "",
+            phone: userData.phonenumber || "",
+            address: `${userData.country || ""} ${userData.province || ""}`.trim() || "",
+          })
+
+          // You can also set other preferences based on user data if available
+          // For now, keeping defaults since they're not in the API response
+        } else {
+          throw new Error("Invalid response format")
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred")
+        console.error("Error fetching user data:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
+  const handleSaveChanges = async () => {
+    try {
+      setSaving(true)
+
+      const userId = sessionStorage.getItem("hs_user_id")
+      if (!userId) {
+        throw new Error("User ID not found")
+      }
+
+      // Prepare data for update
+      const updateData = {
+        fullname: profile.companyName,
+        email: profile.email,
+        phonenumber: profile.phone,
+        // You might want to split address back into country and province
+        // For now, we'll keep the existing structure
+      }
+''
+      const response = await fetch(`http://localhost:3000/api/auth/id/${userId}`, {
+        method: "PUT", // or PATCH depending on your API
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to save changes")
+      }
+
+      // Show success message or handle success
+      alert("Changes saved successfully!")
+    } catch (err) {
+      console.error("Error saving changes:", err)
+      alert("Failed to save changes. Please try again.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center gap-2 text-gray-600">
+          <Loader2 className="animate-spin" size={20} />
+          Loading settings...
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex items-center gap-2 text-red-800">
+          <span className="font-medium">Error loading settings:</span>
+          <span>{error}</span>
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          <Save size={16} />
-          Save Changes
+        <button
+          onClick={handleSaveChanges}
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saving ? (
+            <>
+              <Loader2 className="animate-spin" size={16} />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              Save Changes
+            </>
+          )}
         </button>
       </div>
 
@@ -42,7 +175,7 @@ export default function Settings() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
               type="text"
               value={profile.companyName}
@@ -69,12 +202,13 @@ export default function Settings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
             <input
               type="text"
               value={profile.address}
               onChange={(e) => setProfile({ ...profile, address: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Country, Province"
             />
           </div>
         </div>

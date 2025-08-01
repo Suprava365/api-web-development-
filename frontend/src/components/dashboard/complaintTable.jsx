@@ -42,7 +42,7 @@ export default function ComplaintTable() {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    const studentId = sessionStorage.getItem("studentId");
+    const studentId = sessionStorage.getItem("hs_user_id");
     if (!studentId) return toast.error("Student ID missing in session");
 
     try {
@@ -115,28 +115,29 @@ export default function ComplaintTable() {
               <th className="px-4 py-2">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {complaints.map((c) => (
-              <tr key={c._id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-2">{c.studentId}</td>
-                <td className="px-4 py-2 font-medium">{c.issueTitle}</td>
-                <td className="px-4 py-2">{c.issueDescription}</td>
-                <td className="px-4 py-2">
-                  <div className="flex space-x-2">
-                    <button onClick={() => { setCurrentComplaint(c); setFormData(c); setShowEditModal(true); }}>
-                      <PencilIcon className="w-5 h-5 text-blue-600 hover:text-blue-800" />
-                    </button>
-                    <button onClick={() => { setCurrentComplaint(c); setShowDeleteModal(true); }}>
-                      <TrashIcon className="w-5 h-5 text-red-600 hover:text-red-800" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {complaints.length === 0 && (
-              <tr><td colSpan={4} className="text-center p-6 text-gray-400">No complaints found.</td></tr>
-            )}
-          </tbody>
+         <tbody>
+  {complaints.map((c) => (
+    <tr key={c._id} className="border-t hover:bg-gray-50">
+      <td className="px-4 py-2">{c.studentId?.email || "Unknown"}</td>
+      <td className="px-4 py-2 font-medium">{c.issueTitle}</td>
+      <td className="px-4 py-2">{c.issueDescription}</td>
+      <td className="px-4 py-2">
+        <div className="flex space-x-2">
+          <button onClick={() => { setCurrentComplaint(c); setFormData(c); setShowEditModal(true); }}>
+            <PencilIcon className="w-5 h-5 text-blue-600 hover:text-blue-800" />
+          </button>
+          <button onClick={() => { setCurrentComplaint(c); setShowDeleteModal(true); }}>
+            <TrashIcon className="w-5 h-5 text-red-600 hover:text-red-800" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+  {complaints.length === 0 && (
+    <tr><td colSpan={4} className="text-center p-6 text-gray-400">No complaints found.</td></tr>
+  )}
+</tbody>
+
         </table>
       </div>
 
