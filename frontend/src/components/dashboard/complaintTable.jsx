@@ -8,13 +8,12 @@ import { PencilIcon, TrashIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/
 export default function ComplaintTable() {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({ issueTitle: "", issueDescription: "" });
+  const [currentComplaint, setCurrentComplaint] = useState(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const [formData, setFormData] = useState({ studentId: "", issueTitle: "", issueDescription: "" });
-  const [currentComplaint, setCurrentComplaint] = useState(null);
 
   useEffect(() => {
     fetchComplaints();
@@ -24,7 +23,7 @@ export default function ComplaintTable() {
     try {
       const res = await axios.get("http://localhost:3000/api/complaints");
       setComplaints(res.data.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load complaints");
     } finally {
       setLoading(false);
@@ -36,10 +35,17 @@ export default function ComplaintTable() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const resetForm = () => {
+    setFormData({ issueTitle: "", issueDescription: "" });
+    setCurrentComplaint(null);
+  };
+
   const handleAdd = async (e) => {
     e.preventDefault();
+    const studentId = sessionStorage.getItem("studentId");
+    if (!studentId) return toast.error("Student ID missing in session");
+
     try {
-      const studentId = sessionStorage.getItem("studentId") || formData.studentId;
       const res = await axios.post("http://localhost:3000/api/complaints", {
         ...formData,
         studentId,
@@ -47,8 +53,8 @@ export default function ComplaintTable() {
       setComplaints((prev) => [...prev, res.data.data]);
       toast.success("Complaint added");
       setShowAddModal(false);
-      setFormData({ studentId: "", issueTitle: "", issueDescription: "" });
-    } catch (err) {
+      resetForm();
+    } catch {
       toast.error("Failed to add complaint");
     }
   };
@@ -63,20 +69,20 @@ export default function ComplaintTable() {
       );
       toast.success("Complaint updated");
       setShowEditModal(false);
-      setFormData({ studentId: "", issueTitle: "", issueDescription: "" });
-    } catch (err) {
+      resetForm();
+    } catch {
       toast.error("Failed to update complaint");
     }
   };
 
   const handleDelete = async () => {
-    if (!currentComplaint) return;
     try {
       await axios.delete(`http://localhost:3000/api/complaints/${currentComplaint._id}`);
       setComplaints((prev) => prev.filter((c) => c._id !== currentComplaint._id));
       toast.success("Complaint deleted");
       setShowDeleteModal(false);
-    } catch (err) {
+      resetForm();
+    } catch {
       toast.error("Failed to delete complaint");
     }
   };
@@ -91,7 +97,7 @@ export default function ComplaintTable() {
           <h2 className="text-lg font-semibold">Complaints</h2>
           <button
             onClick={() => {
-              setFormData({ studentId: "", issueTitle: "", issueDescription: "" });
+              resetForm();
               setShowAddModal(true);
             }}
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -99,6 +105,7 @@ export default function ComplaintTable() {
             <PlusIcon className="w-5 h-5 mr-2" /> Add Complaint
           </button>
         </div>
+
         <table className="w-full table-auto text-sm">
           <thead className="bg-gray-100 text-gray-700">
             <tr>
@@ -136,7 +143,7 @@ export default function ComplaintTable() {
       {(showAddModal || showEditModal) && (
         <ModalForm
           title={showAddModal ? "Add Complaint" : "Edit Complaint"}
-          onClose={() => { setShowAddModal(false); setShowEditModal(false); setFormData({ studentId: "", issueTitle: "", issueDescription: "" }); }}
+          onClose={() => { setShowAddModal(false); setShowEditModal(false); resetForm(); }}
           onSubmit={showAddModal ? handleAdd : handleEdit}
           formData={formData}
           handleChange={handleChange}
@@ -164,15 +171,6 @@ const ModalForm = ({ title, onClose, onSubmit, formData, handleChange }) => (
       </div>
       <form onSubmit={onSubmit}>
         <div className="space-y-4">
-          <input
-            type="text"
-            name="studentId"
-            placeholder="Student ID"
-            value={formData.studentId}
-            onChange={handleChange}
-            required
-            className="w-full border rounded px-3 py-2"
-          />
           <input
             type="text"
             name="issueTitle"
@@ -206,7 +204,7 @@ const DeleteModal = ({ onClose, onConfirm, title }) => (
     <div className="absolute inset-0 bg-black opacity-30" onClick={onClose} />
     <div className="bg-white p-6 rounded-lg z-50 w-full max-w-md">
       <h3 className="text-lg font-semibold mb-4">Delete Confirmation</h3>
-      <p>Are you sure you want to delete the complaint "<strong>{title}</strong>"?</p>
+      <p>Are you sure you want to delete "<strong>{title}</strong>"?</p>
       <div className="mt-6 flex justify-end space-x-4">
         <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
         <button onClick={onConfirm} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
