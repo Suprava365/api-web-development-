@@ -110,31 +110,6 @@ exports.createUser = async (req, res) => {
 };
 
 
-// UPDATE user
-exports.updateUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { firstName, lastName, email, password, role, status } = req.body;
-
-    const updatedData = {
-      firstName,
-      lastName,
-      email,
-      role,
-      status,
-    };
-
-    if (password) {
-      updatedData.password = await bcrypt.hash(password, 10);
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(id, updatedData, { new: true });
-    res.json({ message: 'User updated successfully', user: updatedUser });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to update user' });
-  }
-};
-
 // DELETE user
 exports.deleteUser = async (req, res) => {
   try {
