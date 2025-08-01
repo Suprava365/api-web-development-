@@ -20,15 +20,6 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-exports.markAsPaid = async (req, res) => {
-  try {
-    const { bookingId } = req.params;
-    const result = await bookingService.markAsPaid(bookingId);
-    res.json({ success: true, message: 'Payment marked as paid', data: result });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
 
 exports.getBookings = async (req, res) => {
   try {
