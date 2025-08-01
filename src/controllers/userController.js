@@ -1,15 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
-// GET all users
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find().sort({ createdAt: -1 });
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch users' });
-  }
-};
+
 
 // CREATE new user
 exports.createUser = async (req, res) => {
