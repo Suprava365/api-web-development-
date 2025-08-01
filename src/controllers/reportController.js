@@ -36,7 +36,3 @@ exports.getRoomAssignments = async (req, res) => {
   }
 };
 
-// Placeholder for future PDF/Excel
-exports.downloadReport = async (req, res) => {
-  res.json({ success: true, message: 'PDF/Excel export coming soon.' });
-};
