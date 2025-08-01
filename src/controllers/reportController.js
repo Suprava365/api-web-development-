@@ -27,6 +27,14 @@ exports.getComplaintStats = async (req, res) => {
   }
 };
 
+exports.getRoomAssignments = async (req, res) => {
+  try {
+    const assignments = await reportService.getRoomAssignments();
+    res.json({ success: true, data: assignments });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 // Placeholder for future PDF/Excel
 exports.downloadReport = async (req, res) => {
