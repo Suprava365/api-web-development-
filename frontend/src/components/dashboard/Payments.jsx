@@ -1,294 +1,180 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import {
-  PlusIcon,
   PencilIcon,
   TrashIcon,
+  PlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-const Payments = () => {
+export default function Payments() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showFormModal, setShowFormModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentPayment, setCurrentPayment] = useState(null);
-
-  const initialForm = {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
     studentId: "",
-    month: "",
-    rentAmount: "",
-  };
-
-  const [formData, setFormData] = useState(initialForm);
+    service: "Cleaning",
+    amount: "",
+    status: "Paid",
+  });
 
   useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/fees/");
+        if (Array.isArray(res.data)) {
+          setPayments(res.data);
+        } else {
+          setPayments([]);
+          console.error("Expected array but got:", res.data);
+        }
+      } catch (err) {
+        toast.error("Failed to fetch payments");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPayments();
   }, []);
 
-  const fetchPayments = async () => {
-    try {
-      const res = await axios.get("http://localhost:3000/api/fees/invoice");
-      setPayments(res.data);
-    } catch (err) {
-      toast.error("Failed to fetch payments");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleAdd = () => {
-    const studentId = sessionStorage.getItem("hs_user_id");
-    if (!studentId) {
-      toast.error("Student ID not found in session");
-      return;
-    }
-
-    setFormData({
-      studentId,
-      month: "",
-      rentAmount: "",
-    });
-    setIsEditing(false);
-    setShowFormModal(true);
-  };
-
-  const handleEdit = (payment) => {
-    setCurrentPayment(payment);
-    setFormData({
-      studentId: payment.studentId._id || payment.studentId,
-      month: payment.month,
-      rentAmount: payment.rentAmount,
-    });
-    setIsEditing(true);
-    setShowFormModal(true);
-  };
-
-  const handleDeleteClick = (payment) => {
-    setCurrentPayment(payment);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = async () => {
+  const handleAdd = async () => {
     try {
-      await axios.delete(
-        `http://localhost:3000/api/fees/invoice/${currentPayment._id}`
-      );
-      setPayments((prev) =>
-        prev.filter((payment) => payment._id !== currentPayment._id)
-      );
-      toast.success("Payment deleted successfully");
+      const res = await axios.post("http://localhost:3000/api/fees/", formData);
+      toast.success("Payment added");
+      setPayments((prev) => [...prev, res.data]);
+      setShowAddModal(false);
+      setFormData({ studentId: "", service: "Cleaning", amount: "", status: "Paid" });
     } catch (err) {
-      toast.error("Failed to delete payment");
-    } finally {
-      setShowDeleteModal(false);
+      toast.error("Failed to add payment");
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (isEditing) {
-        const res = await axios.put(
-          `http://localhost:3000/api/fees/invoice/${currentPayment._id}`,
-          formData
-        );
-        setPayments((prev) =>
-          prev.map((payment) =>
-            payment._id === currentPayment._id ? res.data : payment
-          )
-        );
-        toast.success("Payment updated successfully");
-      } else {
-        const res = await axios.post(
-          "http://localhost:3000/api/fees/invoice",
-          formData
-        );
-        setPayments((prev) => [...prev, res.data]);
-        toast.success("Payment added successfully");
-      }
-      setShowFormModal(false);
-    } catch (err) {
-      toast.error("Failed to save payment");
-    }
-  };
+  if (loading) return <p className="p-6">Loading payments...</p>;
 
   return (
     <>
       <Toaster position="top-right" />
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white p-6 rounded-lg shadow relative">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Payment History</h2>
+          <h2 className="text-lg font-medium">Payments</h2>
           <button
-            onClick={handleAdd}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
             <PlusIcon className="w-5 h-5 mr-2" /> Add Payment
           </button>
         </div>
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left border border-gray-200">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="px-4 py-2 border">Student ID</th>
-                  <th className="px-4 py-2 border">Month</th>
-                  <th className="px-4 py-2 border">Rent Amount (Rs)</th>
-                  <th className="px-4 py-2 border">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((p) => (
-                  <tr key={p._id} className="border-b">
-                    <td className="px-4 py-2 border">{p.studentId?._id || p.studentId}</td>
-                    <td className="px-4 py-2 border">{p.month}</td>
-                    <td className="px-4 py-2 border">Rs. {p.rentAmount}</td>
-                    <td className="px-4 py-2 border">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(p)}
-                          className="text-blue-600 hover:text-blue-800"
-                          title="Edit"
-                        >
-                          <PencilIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(p)}
-                          className="text-red-600 hover:text-red-800"
-                          title="Delete"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {payments.length === 0 && (
-                  <tr>
-                    <td colSpan="4" className="text-center py-6 text-gray-400">
-                      No payments found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+        <table className="w-full table-auto text-sm text-left">
+          <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th className="px-4 py-2">Student ID</th>
+              <th className="px-4 py-2">Service</th>
+              <th className="px-4 py-2">Amount</th>
+              <th className="px-4 py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.map((payment, idx) => (
+              <tr key={idx} className="border-t hover:bg-gray-50">
+                <td className="px-4 py-2">{payment.studentId}</td>
+                <td className="px-4 py-2">{payment.service}</td>
+                <td className="px-4 py-2">{payment.amount}</td>
+                <td className="px-4 py-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    payment.status === "Paid"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}>
+                    {payment.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowAddModal(false)}
+            />
+            <div className="relative bg-white w-full max-w-md rounded-lg shadow-lg p-6 z-10">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-black"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+              <h3 className="text-xl font-semibold mb-4">Add Payment</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAdd();
+                }}
+                className="grid gap-4"
+              >
+                <input
+                  name="studentId"
+                  placeholder="Student ID"
+                  value={formData.studentId}
+                  onChange={handleChange}
+                  required
+                  className="px-3 py-2 border rounded-md"
+                />
+                <select
+                  name="service"
+                  value={formData.service}
+                  onChange={handleChange}
+                  className="px-3 py-2 border rounded-md"
+                >
+                  <option>Cleaning</option>
+                  <option>Room Maintenance</option>
+                  <option>WiFi</option>
+                  <option>Security</option>
+                  <option>Electricity</option>
+                  <option>Water</option>
+                </select>
+                <input
+                  name="amount"
+                  placeholder="Amount"
+                  type="number"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  required
+                  className="px-3 py-2 border rounded-md"
+                />
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="px-3 py-2 border rounded-md"
+                >
+                  <option>Paid</option>
+                  <option>Pending</option>
+                </select>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        )}
-
-        {showFormModal && (
-          <PaymentFormModal
-            onClose={() => setShowFormModal(false)}
-            onSubmit={handleSubmit}
-            formData={formData}
-            handleChange={handleChange}
-            isEditing={isEditing}
-          />
-        )}
-
-        {showDeleteModal && (
-          <DeleteConfirmModal
-            onClose={() => setShowDeleteModal(false)}
-            onConfirm={confirmDelete}
-            title="Delete Payment"
-            message={`Are you sure you want to delete payment for ${currentPayment?.month}?`}
-          />
         )}
       </div>
     </>
   );
-};
-
-const PaymentFormModal = ({ onClose, onSubmit, formData, handleChange, isEditing }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center">
-    <div className="absolute inset-0 bg-black opacity-30" onClick={onClose} />
-    <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-xl">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">{isEditing ? "Edit Payment" : "Add Payment"}</h3>
-        <button onClick={onClose}>
-          <XMarkIcon className="w-6 h-6 text-gray-600 hover:text-gray-800" />
-        </button>
-      </div>
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm text-gray-600">Select Month</label>
-          <select
-            name="month"
-            value={formData.month}
-            onChange={handleChange}
-            required
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="">-- Select Month --</option>
-            {[
-              "01", "02", "03", "04", "05", "06",
-              "07", "08", "09", "10", "11", "12",
-            ].map((month) => (
-              <option key={month} value={`2025-${month}`}>
-                {new Date(`2000-${month}-01`).toLocaleString("default", { month: "long" })}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm text-gray-600">Rent Amount (Rs)</label>
-          <input
-            type="number"
-            name="rentAmount"
-            value={formData.rentAmount}
-            onChange={handleChange}
-            required
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-
-        <div className="text-right">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700"
-          >
-            {isEditing ? "Update" : "Save"}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-);
-
-const DeleteConfirmModal = ({ onClose, onConfirm, title, message }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center">
-    <div className="absolute inset-0 bg-black opacity-30" onClick={onClose} />
-    <div className="bg-white p-6 rounded-lg shadow-lg z-50 w-full max-w-md">
-      <h3 className="text-lg font-semibold mb-4">{title}</h3>
-      <p>{message}</p>
-      <div className="mt-6 flex justify-end gap-3">
-        <button
-          onClick={onClose}
-          className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={onConfirm}
-          className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-export default Payments;
+}

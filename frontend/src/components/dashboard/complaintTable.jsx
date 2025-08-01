@@ -21,16 +21,15 @@ export default function ComplaintTable() {
   }, []);
 
   const fetchComplaints = async () => {
-  try {
-    const res = await axios.get("http://localhost:3000/api/complaints");
-    setComplaints(res.data.data || []); // ✅ safely set to array
-  } catch (err) {
-    toast.error("Failed to load complaints");
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      const res = await axios.get("http://localhost:3000/api/complaints");
+      setComplaints(res.data.data || []);
+    } catch (err) {
+      toast.error("Failed to load complaints");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,10 +39,15 @@ export default function ComplaintTable() {
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3000/api/complaints", formData);
-      setComplaints((prev) => [...prev, res.data]);
+      const studentId = sessionStorage.getItem("studentId") || formData.studentId;
+      const res = await axios.post("http://localhost:3000/api/complaints", {
+        ...formData,
+        studentId,
+      });
+      setComplaints((prev) => [...prev, res.data.data]);
       toast.success("Complaint added");
       setShowAddModal(false);
+      setFormData({ studentId: "", issueTitle: "", issueDescription: "" });
     } catch (err) {
       toast.error("Failed to add complaint");
     }
@@ -55,10 +59,11 @@ export default function ComplaintTable() {
     try {
       const res = await axios.put(`http://localhost:3000/api/complaints/${currentComplaint._id}`, formData);
       setComplaints((prev) =>
-        prev.map((c) => (c._id === currentComplaint._id ? res.data : c))
+        prev.map((c) => (c._id === currentComplaint._id ? res.data.data : c))
       );
       toast.success("Complaint updated");
       setShowEditModal(false);
+      setFormData({ studentId: "", issueTitle: "", issueDescription: "" });
     } catch (err) {
       toast.error("Failed to update complaint");
     }
@@ -131,7 +136,7 @@ export default function ComplaintTable() {
       {(showAddModal || showEditModal) && (
         <ModalForm
           title={showAddModal ? "Add Complaint" : "Edit Complaint"}
-          onClose={() => { setShowAddModal(false); setShowEditModal(false); }}
+          onClose={() => { setShowAddModal(false); setShowEditModal(false); setFormData({ studentId: "", issueTitle: "", issueDescription: "" }); }}
           onSubmit={showAddModal ? handleAdd : handleEdit}
           formData={formData}
           handleChange={handleChange}
