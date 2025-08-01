@@ -98,22 +98,6 @@ const handleChange = (e) => {
     }
   };
   const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (!currentHostel) return;
-    try {
-      const res = await axios.put(
-        `http://localhost:3000/api/hostels/${currentHostel._id}`,
-        formData
-      );
-      setHostels((prev) =>
-        prev.map((h) => (h.id === currentHostel.id ? res.data : h))
-      );
-      toast.success("Hostel updated successfully");
-      setShowEditModal(false);
-    } catch (error) {
-      toast.error("Failed to update hostel");
-    }
-  };
 
   const handleDeleteConfirm = async () => {
     if (!currentHostel) return;
