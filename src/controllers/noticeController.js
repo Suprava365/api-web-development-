@@ -9,6 +9,15 @@ exports.createNotice = async (req, res) => {
   }
 };
 
+exports.getNotices = async (req, res) => {
+  try {
+    const studentId = req.query.studentId;
+    const result = await noticeService.getAllNotices(studentId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
 
 exports.markAsRead = async (req, res) => {
   try {
