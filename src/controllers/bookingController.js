@@ -48,6 +48,14 @@ exports.getBookingById = async (req, res) => {
   }
 };
 
+exports.updateBooking = async (req, res) => {
+  try {
+    const booking = await bookingService.updateBooking(req.params.bookingId, req.body);
+    res.json({ success: true, message: 'Booking updated', data: booking });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
 
 exports.deleteBooking = async (req, res) => {
   try {
