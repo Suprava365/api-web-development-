@@ -32,8 +32,8 @@ const Payments = () => {
 
   const fetchPayments = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/fees/");
-      setPayments(res.data.data);
+      const res = await axios.get("http://localhost:3000/api/fees/invoice");
+      setPayments(res.data);
     } catch (err) {
       toast.error("Failed to fetch payments");
     } finally {
@@ -58,7 +58,6 @@ const Payments = () => {
       month: "",
       rentAmount: "",
     });
-
     setIsEditing(false);
     setShowFormModal(true);
   };
@@ -66,7 +65,7 @@ const Payments = () => {
   const handleEdit = (payment) => {
     setCurrentPayment(payment);
     setFormData({
-      studentId: payment.studentId,
+      studentId: payment.studentId._id || payment.studentId,
       month: payment.month,
       rentAmount: payment.rentAmount,
     });
@@ -81,9 +80,13 @@ const Payments = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3000/api/fees/invoice/${currentPayment._id}`);
-      setPayments((prev) => prev.filter((p) => p._id !== currentPayment._id));
-      toast.success("Payment deleted");
+      await axios.delete(
+        `http://localhost:3000/api/fees/invoice/${currentPayment._id}`
+      );
+      setPayments((prev) =>
+        prev.filter((payment) => payment._id !== currentPayment._id)
+      );
+      toast.success("Payment deleted successfully");
     } catch (err) {
       toast.error("Failed to delete payment");
     } finally {
@@ -100,13 +103,18 @@ const Payments = () => {
           formData
         );
         setPayments((prev) =>
-          prev.map((p) => (p._id === currentPayment._id ? res.data : p))
+          prev.map((payment) =>
+            payment._id === currentPayment._id ? res.data : payment
+          )
         );
-        toast.success("Payment updated");
+        toast.success("Payment updated successfully");
       } else {
-        const res = await axios.post("http://localhost:3000/api/fees/invoice", formData);
+        const res = await axios.post(
+          "http://localhost:3000/api/fees/invoice",
+          formData
+        );
         setPayments((prev) => [...prev, res.data]);
-        toast.success("Payment added");
+        toast.success("Payment added successfully");
       }
       setShowFormModal(false);
     } catch (err) {
@@ -144,7 +152,7 @@ const Payments = () => {
               <tbody>
                 {payments.map((p) => (
                   <tr key={p._id} className="border-b">
-                    <td className="px-4 py-2 border">{p.studentId?._id || "Unknown"}</td>
+                    <td className="px-4 py-2 border">{p.studentId?._id || p.studentId}</td>
                     <td className="px-4 py-2 border">{p.month}</td>
                     <td className="px-4 py-2 border">Rs. {p.rentAmount}</td>
                     <td className="px-4 py-2 border">
@@ -227,7 +235,7 @@ const PaymentFormModal = ({ onClose, onSubmit, formData, handleChange, isEditing
               "01", "02", "03", "04", "05", "06",
               "07", "08", "09", "10", "11", "12",
             ].map((month) => (
-              <option key={month} value={month}>
+              <option key={month} value={`2025-${month}`}>
                 {new Date(`2000-${month}-01`).toLocaleString("default", { month: "long" })}
               </option>
             ))}
